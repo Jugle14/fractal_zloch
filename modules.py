@@ -1,6 +1,7 @@
 import math as m
 from numba import jit
 from numpy import round as rd
+from numpy import sqrt as sq
 e = m.e
 
 def conv_flo_to_int(num):
@@ -22,19 +23,27 @@ def conv_flo_to_int(num):
 def compl_n_calc (x, y, x_or, y_or):    
     a = x**2 - y**2 + x_or
     b = 2*x*y + y_or
-
+    a, b = rd(a, 10), rd(b, 10)
     return a, b
 
 @jit(nopython=True)
 def square_loop(iter, x, y):
     x_or, y_or = x, y
+    dist = 0
     for it in range(0, iter):
-        x, y = compl_n_calc(x, y, x_or, y_or)
-        x, y = rd(x, 4), rd(y, 4)
-        temp_module = rd(module_calc(x, y), 4)
+        x_new, y_new = compl_n_calc(x, y, x_or, y_or)
+        dist += rd(dist_calc(x, y, x_new, y_new), 4)
+        x, y = x_new, y_new
+        temp_module = rd(module_calc(x, y), 6)
         if temp_module > 4:
             break
-    return it
+        """temp_module = rd(module_calc(x, y), 6)
+        if temp_module > 4:
+            x_new, y_new = compl_n_calc(x, y, x_or, y_or)
+            x_new, y_new = rd(x_new, 6), rd(y_new, 6)
+            dist += dist_calc(x, y, x_new, y_new)
+            break"""
+    return (0, dist)
 
 @jit(nopython=True)
 def module_calc(x, y):
@@ -42,8 +51,17 @@ def module_calc(x, y):
     return dist
 
 @jit(nopython=True)
+def dist_calc(x, y, x_new, y_new):
+    dist = sq((x-x_new)**2 + (y-y_new)**2)
+    return dist
+
+@jit(nopython=True)
 def convert_speed(speed, iterations):
-    return round(1000*(speed/iterations))
+    return 4096 - round(4096*2**(-32*speed/(iterations))) - 1
+
+@jit(nopython=True)
+def convert_speed_2(speed):
+    return round(1024/(1+e**(-speed+10)))
 
 def main():
     speed = square_loop(4, -1, 0.8)
