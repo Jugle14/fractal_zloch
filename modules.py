@@ -23,7 +23,6 @@ def conv_flo_to_int(num):
 def compl_n_calc (x, y, x_or, y_or):    
     a = x**2 - y**2 + x_or
     b = 2*x*y + y_or
-    a, b = rd(a, 10), rd(b, 10)
     return a, b
 
 @jit(nopython=True)
@@ -32,9 +31,9 @@ def square_loop(iter, x, y):
     dist = 0
     for it in range(0, iter):
         x_new, y_new = compl_n_calc(x, y, x_or, y_or)
-        dist += rd(dist_calc(x, y, x_new, y_new), 4)
+        dist += dist_calc(x, y, x_new, y_new)
         x, y = x_new, y_new
-        temp_module = rd(module_calc(x, y), 6)
+        temp_module = module_calc(x, y)
         if temp_module > 4:
             break
         """temp_module = rd(module_calc(x, y), 6)
@@ -57,7 +56,7 @@ def dist_calc(x, y, x_new, y_new):
 
 @jit(nopython=True)
 def convert_speed(speed, iterations):
-    return 4096 - round(4096*2**(-32*speed/(iterations))) - 1
+    return 4096 - round(4096*2**(-speed*2**-8)) - 1
 
 @jit(nopython=True)
 def convert_speed_2(speed):
